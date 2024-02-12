@@ -2,9 +2,7 @@ package project;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
-import java.util.InputMismatchException;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Scanner;
 
@@ -13,8 +11,16 @@ import project.entity.Project;
 import project.exception.DbException;
 import project.service.ProjectService;
 
+
 public class ProjectApp {
-	@SuppressWarnings("unused")
+	
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+
+		//Connection conn = DbConnection.getConnection();
+		new ProjectApp().processUserSelections();
+	}
+
 	private Scanner scanner = new Scanner(System.in);
 	private ProjectService projectService = new ProjectService();
 
@@ -22,17 +28,13 @@ public class ProjectApp {
 	private List<String> operations = List.of(
 			"1) Add a project",
 			"2) List projects",
-			"3) Select a project"
+			"3) Select a project",
+			"4) Update project details",
+			"5) Delete a project"
 			);
 	private Project curProject;
 	//@formatter:on
-	@SuppressWarnings("unused")
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 
-		Connection conn = DbConnection.getConnection();
-		new ProjectApp().processUserSelections();
-	}
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	private void processUserSelections() {
@@ -55,6 +57,12 @@ public class ProjectApp {
 				case 3:
 					selectProject();
 					break;
+				case 4:
+					updateProjectDetails();
+					break;
+				case 5:
+					deleteProject();
+					break;
 
 				default:
 					System.out.println("\n" + operation + " is not valid. Try again");
@@ -65,22 +73,65 @@ public class ProjectApp {
 			}
 		}
 	}
+
+	private void deleteProject() {
+		listProjects();
+		
+		Integer projectId = getIntInput("Enter the ID of the project to delete");
+		
+		projectService.deleteProject(projectId);
+		System.out.println("Project " + projectId + " was deleted successfully.");
+		
+		if(Objects.isNull(curProject) && curProject.getProjectId().equals(projectId)) {
+			curProject = null;
+		}
+	}
+
+	////////////////////////////// WEEK 11 UPDATE//////////////////////////////////////////////////////////////////////////
+	
+	private void updateProjectDetails() {
+		
+		if(Objects.isNull(curProject)) {
+			System.out.println("\nPlease select a project.");
+			return;
+		}
+		String projectName = getStringInput("Enter the project name[" + curProject.getProjectName() + "]");
+		
+		BigDecimal estimatedHours = getDecimalInput("Enter the estimated hours [" + curProject.getEstimatedHours() + "]");
+		BigDecimal actualHours = getDecimalInput("Enter the actual hours [" + curProject.getActualHours() + "]");
+		Integer difficulty = getIntInput("Enter the project difficulty (1-5) [" + curProject.getDifficulty() + "]");
+		String notes = getStringInput("Enter the project notes [" + curProject.getNotes() + "]");
+		
+		Project project = new Project ();
+		
+		project.setProjectId(curProject.getProjectId());;
+		project.setProjectName(Objects.isNull(projectName) ? curProject.getProjectName() : projectName);;
+		project.setEstimatedHours((Objects.isNull(estimatedHours) ? curProject.getEstimatedHours() : estimatedHours));
+		project.setActualHours(Objects.isNull(actualHours) ? curProject.getActualHours() : actualHours);
+		project.setDifficulty(Objects.isNull(difficulty) ? curProject.getDifficulty() : difficulty);
+		project.setNotes(Objects.isNull(notes) ? curProject.getNotes() : notes);
+		projectService.modifyProjectDetails(project);
+		
+		curProject = projectService.fetchProjectById(curProject.getProjectId());
+		
+		
+	}
+
 /////////////////////////////////WEEK 10 MODIFICATION//////////////////////////////////////////////////////////////////////////////
 	private void selectProject() {
 		listProjects();
 		Integer projectId = getIntInput("Enter a project ID to select a project");
-		
-		//to un select current project
-		curProject = null; 
-		
-		//This will throw an exception if an invalid project ID is entered
+
+		// to un select current project
+		curProject = null;
+
+		// This will throw an exception if an invalid project ID is entered
 		curProject = projectService.fetchProjectById(projectId);
 		if (Objects.isNull(curProject)) {
 			System.out.println("\nThat is not a valid project.");
 		}
 	} // end selectProject
-	
-	
+
 ///////////////////////List the projects to display////////////////////////////////////////////////////////////////////////////////////
 	private void listProjects() {
 		List<Project> projects = projectService.fetchAllProjects();
@@ -163,7 +214,7 @@ public class ProjectApp {
 	}
 
 	/*
-
+	 * 
 	 * 
 	 * @SuppressWarnings("unused") private void createTables() {
 	 * projectService.createAndPopulateTables();
