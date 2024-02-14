@@ -213,7 +213,7 @@ private List<Step> fetchStepsForProject(Connection conn, Integer projectId) thro
 				+"UPDATE " + PROJECT_TABLE + " SET "
 				+"project_name = ?, "
 				+"estimated_hours = ?, "
-				+"actual_hours, = ? "
+				+"actual_hours = ?, "
 				+"difficulty = ?, "
 				+"notes = ? "
 				+"WHERE project_id = ?";
